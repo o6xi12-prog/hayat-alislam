@@ -1,2 +1,111 @@
 # hayat-alislam
-Islam app for pray
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#075e54">
+<title>حياة الإسلام 🕌</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f7f4;color:#183b32;font-family:Arial,sans-serif}
+header{background:#075e54;color:white;padding:28px 18px;text-align:center;border-radius:0 0 25px 25px}
+header h1{margin:0 0 8px}
+main{max-width:650px;margin:auto;padding:16px}
+.card{background:white;padding:18px;margin:14px 0;border-radius:18px;box-shadow:0 3px 12px #0000000d}
+h2{color:#087565;margin-top:0}
+button{background:#087565;color:white;border:0;border-radius:12px;padding:12px 18px;font-size:16px;cursor:pointer;margin:4px}
+.secondary{background:#e2f1eb;color:#075e54}
+.big{font-size:38px;text-align:center;margin:12px}
+.item{padding:12px 0;border-bottom:1px solid #e8eee9;line-height:1.9}
+a{color:#087565}
+small{color:#64776f}
+</style>
+</head>
+<body>
+<header>
+<h1>🕌 حياة الإسلام</h1>
+<div>طمأنينة لقلبك، وذكر لربك</div>
+<p id="date"></p>
+</header>
+<main>
+<section class="card">
+<h2>🕋 مواقيت الصلاة — عمّان</h2>
+<div id="prayers">جاري تحميل مواقيت الصلاة...</div>
+<button onclick="loadPrayers()">تحديث المواقيت</button>
+<small>تحتاج اتصالًا بالإنترنت لعرض المواقيت.</small>
+</section>
+
+<section class="card">
+<h2>📿 المسبحة الإلكترونية</h2>
+<div class="big" id="count">0</div>
+<div style="text-align:center">
+<button onclick="add()">سبّح</button>
+<button class="secondary" onclick="reset()">إعادة التصفير</button>
+</div>
+<p style="text-align:center">سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر</p>
+</section>
+
+<section class="card">
+<h2>🌿 أذكار الصباح</h2>
+<div class="item">سبحان الله وبحمده (100 مرة)</div>
+<div class="item">رضيت بالله ربًا، وبالإسلام دينًا، وبمحمد ﷺ نبيًا.</div>
+<div class="item">اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك النشور.</div>
+</section>
+
+<section class="card">
+<h2>🌙 أذكار المساء</h2>
+<div class="item">أمسينا وأمسى الملك لله، والحمد لله.</div>
+<div class="item">أستغفر الله وأتوب إليه.</div>
+<div class="item">اللهم إني أسألك العفو والعافية في الدنيا والآخرة.</div>
+</section>
+
+<section class="card">
+<h2>🤲 أدعية</h2>
+<div class="item">ربنا آتنا في الدنيا حسنة وفي الآخرة حسنة وقنا عذاب النار.</div>
+<div class="item">رب اشرح لي صدري ويسر لي أمري.</div>
+<div class="item">اللهم أعني على ذكرك وشكرك وحسن عبادتك.</div>
+</section>
+
+<section class="card">
+<h2>🔔 التنبيهات</h2>
+<p>يمكنك تجربة السماح بالإشعارات من المتصفح، لكن هذا الإصدار لا يضمن الأذان أو التنبيهات إذا أُغلق الموقع.</p>
+<button onclick="notify()">تجربة الإشعارات</button>
+<p id="notice"></p>
+</section>
+<footer style="text-align:center;padding:20px"><small>اللهم اجعل هذا العمل نافعًا ومباركًا 🤍</small></footer>
+</main>
+<script>
+document.getElementById('date').textContent=new Date().toLocaleDateString('ar-JO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+let count=0;
+function add(){count++;document.getElementById('count').textContent=count}
+function reset(){count=0;document.getElementById('count').textContent=count}
+async function loadPrayers(){
+const el=document.getElementById('prayers');
+el.textContent='جاري التحميل...';
+try{
+const d=new Date();
+const url=`https://api.aladhan.com/v1/timingsByCity/${d.getDate()}-${d.getMonth()+1}-${d.getFullYear()}?city=Amman&country=Jordan&method=23`;
+const r=await fetch(url);const j=await r.json();
+if(j.code!==200)throw Error();
+const t=j.data.timings;
+el.innerHTML=['Fajr|الفجر','Dhuhr|الظهر','Asr|العصر','Maghrib|المغرب','Isha|العشاء'].map(x=>{
+const [en,ar]=x.split('|');return `<div class="item">${ar}: <b dir="ltr">${t[en]}</b></div>`;
+}).join('');
+}catch(e){el.textContent='تعذر تحميل المواقيت. تأكد من الإنترنت وحاول مرة ثانية.'}
+}
+async function notify(){
+const out=document.getElementById('notice');
+if(!('Notification'in window)){out.textContent='المتصفح لا يدعم الإشعارات هنا.';return}
+try{
+const p=await Notification.requestPermission();
+if(p==='granted'){new Notification('حياة الإسلام',{body:'اللهم أعنا على ذكرك وشكرك وحسن عبادتك.'});out.textContent='تم إرسال إشعار تجريبي.'}
+else out.textContent='لم يتم السماح بالإشعارات. افحص إعدادات المتصفح.';
+}catch(e){out.textContent='تعذر تشغيل الإشعارات من هذه الصفحة.'}
+}
+loadPrayers();
+</script>
+</body>
+</html>
+
